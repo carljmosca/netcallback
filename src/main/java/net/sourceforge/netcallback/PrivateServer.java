@@ -18,14 +18,15 @@
  */
 package net.sourceforge.netcallback;
 
+import com.beust.jcommander.JCommander;
 import net.sourceforge.netcallback.util.InetAddressUtils;
 import java.net.*;
 import java.io.*;
 
 import java.util.Map;
 import java.util.HashMap;
+import net.sourceforge.netcallback.options.BaseOptions;
 import net.sourceforge.netcallback.options.PrivateServerOptions;
-import sun.tools.jar.CommandLine;
 
 /**
  * Server executing on the host behind the firewall that connects to the
@@ -468,10 +469,13 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
     /**
      * Command-line startup of PrivateServer
      *
-     * @param options
+     * @param args
      */
-    public static void main(PrivateServerOptions options) {
-
+    public static void main(String[] args) {
+        
+        PrivateServerOptions options = new PrivateServerOptions();
+        JCommander jCommander = new JCommander(options, args);
+        
         String pname = "PrivateServer";
 
         CallbackSocketFactory socketFactory = null;

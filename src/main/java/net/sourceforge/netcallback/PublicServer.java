@@ -18,6 +18,7 @@
  */
 package net.sourceforge.netcallback;
 
+import com.beust.jcommander.JCommander;
 import net.sourceforge.netcallback.util.InetAddressUtils;
 import java.net.*;
 import java.io.*;
@@ -219,6 +220,7 @@ public class PublicServer extends Thread {
         // (NOTE: only one PrivateServer at a time !)
         //
         Thread serviceThread = new Thread() {
+            @Override
             public void run() {
                 while (active) {
                     try {
@@ -392,6 +394,8 @@ public class PublicServer extends Thread {
 
     /**
      * Returns the DataOutputStream used to tunnel
+     *
+     * @return
      */
     public DataOutputStream getServiceDataOutput() {
         return (serviceDataOutput);
@@ -402,6 +406,7 @@ public class PublicServer extends Thread {
      * copying thread to an anonymous port, and requesting the private server to
      * connect to the anonymous port.
      */
+    @Override
     public void run() {
         while (active) {
             try {
@@ -464,7 +469,7 @@ public class PublicServer extends Thread {
 
                             SocketBridgeListener l = (SocketBridge s) -> {
                                 id2SocketBridgeMap.remove(new Long(id));
-                                
+
                                 synchronized (serviceDataOutput) {
                                     try {
                                         serviceDataOutput.writeInt(CallbackProtocol.CLOSE);
@@ -482,10 +487,11 @@ public class PublicServer extends Thread {
                             id2SocketBridgeMap.put(new Long(id), socketBridge);
                         } catch (Throwable e) {
 
-                            e.printStackTrace();
                             try {
                                 Log.debug("Closing callback socket " + callbackSocket);
-                                callbackSocket.close();
+                                if (callbackSocket != null) {
+                                    callbackSocket.close();
+                                }
                             } catch (Throwable e2) {
                             }
 
@@ -532,9 +538,13 @@ public class PublicServer extends Thread {
 
     /**
      * Command line invocation of the PublicServer
-     * @param options
+     *
+     * @param args
      */
-    public static void main(PublicServerOptions options) {
+    public static void main(String[] args) {
+
+        PublicServerOptions options = new PublicServerOptions();
+        JCommander jCommander = new JCommander(options, args);
 
         String pname = "PublicServer";
 

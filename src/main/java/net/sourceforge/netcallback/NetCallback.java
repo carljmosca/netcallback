@@ -15,9 +15,8 @@
  */
 package net.sourceforge.netcallback;
 
+import com.beust.jcommander.JCommander;
 import net.sourceforge.netcallback.options.BaseOptions;
-import net.sourceforge.netcallback.options.PrivateServerOptions;
-import net.sourceforge.netcallback.options.PublicServerOptions;
 
 /**
  * Command-line de-multiplexing between PrivateServer and PublicServer
@@ -27,44 +26,27 @@ import net.sourceforge.netcallback.options.PublicServerOptions;
  */
 public class NetCallback {
 
+    public static final String PUBLIC_SERVER = "public";
+    public static final String PRIVATE_SERVER = "private";
+    
     /**
      * Prevent instantiation
      */
     private NetCallback() {
     }
 
-    public static void usage() {
-        System.err.println("Starts the public or the private NetCallback server:");
-
-        System.out.print("Usage: -public ");
-        PublicServer.usageRaw();
-
-        System.out.print("\nUsage: -private ");
-        PrivateServer.usageRaw();
-    }
-
     public static void main(String[] args) {
-        if (args.length == 0) {
-            usage();
+        
+        BaseOptions options = new BaseOptions();
+        JCommander jCommander = new JCommander(options, args);
+        
+        if (options.getParameters().contains(PUBLIC_SERVER)) {
+            PublicServer.main(args);    
+        } else if (options.getParameters().contains(PRIVATE_SERVER)) {
+            PrivateServer.main(args);
+        } else {
+            jCommander.usage();
             System.exit(1);
-        }
-
-        String[] args2 = new String[args.length - 1];
-        System.arraycopy(args, 1, args2, 0, args.length - 1);
-
-        BaseOptions options;
-        switch (args[0]) {
-            case "-public":
-                options = new PublicServerOptions();
-                PublicServer.main((PublicServerOptions)options);
-                break;
-            case "-private":
-                options = new PrivateServerOptions();
-                PrivateServer.main((PrivateServerOptions)options);
-                break;
-            default:
-                usage();
-                System.exit(1);
         }
     }
 }

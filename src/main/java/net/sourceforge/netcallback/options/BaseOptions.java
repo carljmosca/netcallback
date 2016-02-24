@@ -6,6 +6,8 @@
 package net.sourceforge.netcallback.options;
 
 import com.beust.jcommander.Parameter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -13,6 +15,8 @@ import com.beust.jcommander.Parameter;
  */
 public class BaseOptions {
 
+    @Parameter(description = "server type (private, public)")
+    private List<String> parameters;
     @Parameter(names = "--service-port", required = true, description = "port used to receive private server communications")
     private Integer servicePort;
     @Parameter(names = "--tcp-port", required = false, description = "clients use this TCP port to use tunnel")
@@ -21,6 +25,21 @@ public class BaseOptions {
     private Integer udpPort;
     @Parameter(names = "--ssl", required = false, description = "otional flag to enable SSL communication between servers")
     protected Boolean ssl = Boolean.FALSE;
+    
+    public BaseOptions() {
+        parameters = new ArrayList<>();
+        servicePort = 0;
+        tcpPort = 0;
+        udpPort = 0;
+    }
+
+    public List<String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(List<String> parameters) {
+        this.parameters = parameters;
+    }
 
     public Integer getServicePort() {
         return servicePort;
