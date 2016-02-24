@@ -1,7 +1,7 @@
 netcallback
 ### orignal version
 This version of netcallback is a modification of Copyright © 2001 Alexander V. Konstantinou
-[original version](http://netcallback.sourceforge.net/)
+[found here](http://netcallback.sourceforge.net/)
 
 The original work, and therefore this update, is licensed under the GPL.
 
@@ -16,3 +16,5 @@ You should have received a copy of the GNU General Public License along with thi
 java -jar netcallback.jar public --service-port 9999 --tcp-port 81
 java -jar netcallback.jar private --service-host 10.11.10.11 --service-port 9999 --tcp-host my-inside.service.localdomain --tcp-port 8090
 ```
+
+### Docker
