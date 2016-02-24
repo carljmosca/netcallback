@@ -15,6 +15,15 @@ import java.util.List;
  */
 public class NcOptions {
 
+    public final String ENV_SERVER_TYPE = "NCB_SERVER_TYPE";
+    public final String ENV_SERVICE_PORT = "NCB_SERVICE_PORT";
+    public final String ENV_TCP_PORT = "NCB_TCP_PORT";
+    public final String ENV_UDP_PORT = "NCB_UDP_PORT";
+    public final String ENV_SSL = "NCB_SSL";
+    public final String ENV_SERVICE_HOST = "NCB_SERVICE_HOST";
+    public final String ENV_TCP_HOST = "NCB_TCP_HOST";
+    public final String ENV_UDP_HOST = "NCB_UDP_HOST";
+
     @Parameter(description = "server type (private, public)")
     private List<String> parameters;
     @Parameter(names = "--service-port", required = false, description = "port used to receive private server communications")
@@ -31,12 +40,50 @@ public class NcOptions {
     private String tcpHost;
     @Parameter(names = "--udp-host", required = false, description = "clients use this UDP host to use tunnel")
     private String udpHost;
-    
+
     public NcOptions() {
         parameters = new ArrayList<>();
         servicePort = 0;
         tcpPort = 0;
         udpPort = 0;
+        loadFromEnvironment();
+    }
+
+    private void loadFromEnvironment() {
+        parameters.add(loadString(ENV_SERVER_TYPE));
+        servicePort = loadInteger(ENV_SERVICE_PORT);
+        tcpPort = loadInteger(ENV_TCP_PORT);
+        udpPort = loadInteger(ENV_UDP_PORT);
+        ssl = loadBoolean(ENV_SSL);
+        serviceHost = loadString(ENV_SERVICE_HOST);
+        tcpHost = loadString(ENV_TCP_HOST);
+        udpHost = loadString(ENV_UDP_HOST);
+    }
+
+    private String loadString(String name) {
+        String result = System.getenv(name);
+        return result != null ? result : "";
+    }
+
+    private boolean loadBoolean(String name) {
+        String s = System.getenv(name);
+        if (s != null) {
+           return !s.equalsIgnoreCase("TRUE") && !s.equals("1");
+        }
+        return false;
+    }
+
+    private Integer loadInteger(String name) {
+        String s = System.getenv(name);
+        if (s != null) {
+            try {
+                Integer i = Integer.valueOf(s);
+                return i;
+            } catch (NumberFormatException e) {
+
+            }
+        }
+        return 0;
     }
 
     public String getServiceHost() {
