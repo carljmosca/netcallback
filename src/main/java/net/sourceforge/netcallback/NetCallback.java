@@ -16,7 +16,7 @@
 package net.sourceforge.netcallback;
 
 import com.beust.jcommander.JCommander;
-import net.sourceforge.netcallback.options.BaseOptions;
+import net.sourceforge.netcallback.options.NcOptions;
 
 /**
  * Command-line de-multiplexing between PrivateServer and PublicServer
@@ -37,13 +37,14 @@ public class NetCallback {
 
     public static void main(String[] args) {
         
-        BaseOptions options = new BaseOptions();
+        NcOptions options = new NcOptions();
         JCommander jCommander = new JCommander(options, args);
+        jCommander.setProgramName("netcallback");
         
         if (options.getParameters().contains(PUBLIC_SERVER)) {
-            PublicServer.main(args);    
+            PublicServer.main(jCommander, options);    
         } else if (options.getParameters().contains(PRIVATE_SERVER)) {
-            PrivateServer.main(args);
+            PrivateServer.main(jCommander, options);
         } else {
             jCommander.usage();
             System.exit(1);

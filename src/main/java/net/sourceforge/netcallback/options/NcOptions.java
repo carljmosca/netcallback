@@ -13,24 +13,54 @@ import java.util.List;
  *
  * @author moscac
  */
-public class BaseOptions {
+public class NcOptions {
 
     @Parameter(description = "server type (private, public)")
     private List<String> parameters;
-    @Parameter(names = "--service-port", required = true, description = "port used to receive private server communications")
+    @Parameter(names = "--service-port", required = false, description = "port used to receive private server communications")
     private Integer servicePort;
     @Parameter(names = "--tcp-port", required = false, description = "clients use this TCP port to use tunnel")
     private Integer tcpPort;
     @Parameter(names = "--udp-port", required = false, description = "clients use this UDP port to use tunnel")
     private Integer udpPort;
     @Parameter(names = "--ssl", required = false, description = "otional flag to enable SSL communication between servers")
-    protected Boolean ssl = Boolean.FALSE;
+    protected boolean ssl;
+    @Parameter(names = "--service-host", required = false, description = "host used to receive private server communications")
+    private String serviceHost;
+    @Parameter(names = "--tcp-host", required = false, description = "clients use this TCP host to use tunnel")
+    private String tcpHost;
+    @Parameter(names = "--udp-host", required = false, description = "clients use this UDP host to use tunnel")
+    private String udpHost;
     
-    public BaseOptions() {
+    public NcOptions() {
         parameters = new ArrayList<>();
         servicePort = 0;
         tcpPort = 0;
         udpPort = 0;
+    }
+
+    public String getServiceHost() {
+        return serviceHost;
+    }
+
+    public void setServiceHost(String serviceHost) {
+        this.serviceHost = serviceHost;
+    }
+
+    public String getTcpHost() {
+        return tcpHost;
+    }
+
+    public void setTcpHost(String tcpHost) {
+        this.tcpHost = tcpHost;
+    }
+
+    public String getUdpHost() {
+        return udpHost;
+    }
+
+    public void setUdpHost(String udpHost) {
+        this.udpHost = udpHost;
     }
 
     public List<String> getParameters() {
@@ -65,11 +95,11 @@ public class BaseOptions {
         this.udpPort = udpPort;
     }
 
-    public Boolean getSsl() {
+    public boolean isSsl() {
         return ssl;
     }
 
-    public void setSsl(Boolean ssl) {
+    public void setSsl(boolean ssl) {
         this.ssl = ssl;
     }
 

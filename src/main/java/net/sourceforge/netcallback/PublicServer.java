@@ -25,7 +25,7 @@ import java.io.*;
 
 import java.util.Map;
 import java.util.HashMap;
-import net.sourceforge.netcallback.options.PublicServerOptions;
+import net.sourceforge.netcallback.options.NcOptions;
 
 /**
  * Server executing on a public host (not protected by a firewall) which is the
@@ -539,18 +539,15 @@ public class PublicServer extends Thread {
     /**
      * Command line invocation of the PublicServer
      *
-     * @param args
+     * @param options
      */
-    public static void main(String[] args) {
-
-        PublicServerOptions options = new PublicServerOptions();
-        JCommander jCommander = new JCommander(options, args);
+    public static void main(JCommander jCommander, NcOptions options) {
 
         String pname = "PublicServer";
 
         CallbackSocketFactory socketFactory = null;
 
-        if (options.getSsl()) {
+        if (options.isSsl()) {
             //
             // Verify SSL environment
             //
@@ -607,8 +604,7 @@ public class PublicServer extends Thread {
         }
 
         if ((options.getTcpPort() <= 0) && (options.getUdpPort() <= 0)) {
-            System.err.println(pname + ": one of -tcpPort or -udpPort must be provided");
-            usageExit();
+            jCommander.usage();
         }
 
         //

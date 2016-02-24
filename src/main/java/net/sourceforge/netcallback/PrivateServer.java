@@ -25,8 +25,7 @@ import java.io.*;
 
 import java.util.Map;
 import java.util.HashMap;
-import net.sourceforge.netcallback.options.BaseOptions;
-import net.sourceforge.netcallback.options.PrivateServerOptions;
+import net.sourceforge.netcallback.options.NcOptions;
 
 /**
  * Server executing on the host behind the firewall that connects to the
@@ -469,18 +468,15 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
     /**
      * Command-line startup of PrivateServer
      *
-     * @param args
+     * @param options
      */
-    public static void main(String[] args) {
-        
-        PrivateServerOptions options = new PrivateServerOptions();
-        JCommander jCommander = new JCommander(options, args);
-        
+    public static void main(JCommander jCommander, NcOptions options) {
+            
         String pname = "PrivateServer";
 
         CallbackSocketFactory socketFactory = null;
 
-        if (options.getSsl()) {
+        if (options.isSsl()) {
             //
             // Verify SSL Environment
             //
@@ -516,8 +512,7 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
         }
 
         if ((options.getTcpHost() == null) && (options.getUdpHost() == null)) {
-            System.err.println(pname + ": did not provide either a -tcp or a -udp flag");
-            usageExit();
+            jCommander.usage();
         }
 
         //
