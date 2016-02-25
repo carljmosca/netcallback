@@ -1,0 +1,172 @@
+---
+  kind: "List"
+  apiVersion: "v1"
+  metadata:
+    name: "netcallback-private"
+  items:
+    -
+      kind: "ImageStream"
+      apiVersion: "v1"
+      metadata:
+        name: "netcallback"
+      spec:
+        dockerImageRepository: "netcallback"
+        tags:
+          -
+            name: "latest"
+    -
+      kind: "Template"
+      apiVersion: "v1"
+      metadata:
+        name: "netcallback-private"
+        annotations:
+          description: "netcallback-private"
+          iconClass: "icon-jboss"
+          tags: "netcallback,tunnel"
+      labels:
+        application: "netcallback-private"
+        createdBy: "template-netcallback"
+      parameters:
+        -
+          description: "The name for the application."
+          name: "APPLICATION_NAME"
+          value: "netcallback"
+          displayName: "Application name"
+          required: true
+        -
+          description: "service host"
+          name: "NCB_SERVICE_HOST"
+          displayName: "service host"
+          required: true
+        -
+          description: "service port"
+          name: "NCB_SERVICE_PORT"
+          displayName: "service port"
+          required: true
+        -
+          description: "tcp host"
+          name: "NCB_TCP_HOST"
+          displayName: "tcp host"
+          required: true
+        -
+          description: "tcp port"
+          name: "NCB_TCP_PORT"
+          displayName: "tcp port"
+          required: true
+        -
+          description: "udp host"
+          name: "NCB_UDP_HOST"
+          displayName: "udp host"
+          required: true
+        -
+          description: "udp port"
+          name: "NCB_UDP_PORT"
+          displayName: "udp port"
+          required: true        
+        -
+          description: "Custom hostname for service routes.  Leave blank for default hostname, e.g.: <application-name>.<project>.<default-domain-suffix>"
+          name: "APPLICATION_HOSTNAME"
+          displayName: "Application hostname for netcallback private service"
+      objects:
+        -
+          kind: "DeploymentConfig"
+          apiVersion: "v1"
+          metadata:
+            name: "${APPLICATION_NAME}"
+          spec:
+            strategy:
+              type: "Rolling"
+              rollingParams:
+                updatePeriodSeconds: 1
+                intervalSeconds: 1
+                timeoutSeconds: 600
+              resources: {}
+            triggers:
+              -
+                type: "ConfigChange"
+              -
+                type: "ImageChange"
+                imageChangeParams:
+                  automatic: true
+                  containerNames:
+                    - "ipoc-rs"
+                  from:
+                    kind: "ImageStreamTag"
+                    namespace: "openshift"
+                    name: "ipoc-rs:latest"
+            replicas: 1
+            selector:
+              deploymentconfig: "${APPLICATION_NAME}"
+            template:
+              metadata:
+                labels:
+                  deploymentconfig: "${APPLICATION_NAME}"
+              spec:
+                containers:
+                  -
+                    name: "netcallback-private"
+                    image: "netcallback"
+                    ports:
+                      -
+                        containerPort: "${NCB_SERVICE_PORT}"
+                        protocol: "TCP"
+                    env:
+                      -
+                        name: "NCB_SERVER_TYPE"
+                        value: "private"
+                      -
+                        name: "NCB_SERVICE_HOST"
+                        value: "${NCB_SERVICE_HOST}"
+                      -
+                        name: "NCB_SERVICE_PORT"
+                        value: "${NCB_SERVICE_PORT}"
+                      -
+                        name: "NCB_TCP_HOST"
+                        value: "${NCB_TCP_HOST}"
+                      -
+                        name: "NCB_TCP_PORT"
+                        value: "${NCB_TCP_PORT}"
+                      -
+                        name: "NCB_UDP_HOST"
+                        value: "${NCB_UDP_HOST}"
+                      -
+                        name: "APPLICATION_NAME"
+                        value: "${APPLICATION_NAME}"
+                    livenessProbe:
+                      tcpSocket:
+                        port: "${NCB_SERVICE_PORT}"
+                      initialDelaySeconds: 300
+                      timeoutSeconds: 1
+                    resources: {}
+                    terminationMessagePath: "/dev/termination-log"
+                    imagePullPolicy: "IfNotPresent"
+                    securityContext:
+                      capabilities: {}
+                      privileged: false
+                restartPolicy: "Always"
+                dnsPolicy: "ClusterFirst"
+        -
+          kind: "Route"
+          apiVersion: "v1"
+          metadata: 
+            name: "${APPLICATION_NAME}"
+          spec:
+            host: netcallback-private
+            to:
+              kind: "Service"
+              name: "${APPLICATION_NAME}"
+        -
+          kind: "Service"
+          apiVersion: "v1"
+          metadata:
+            name: "${APPLICATION_NAME}"
+          spec:
+            ports:
+              -
+                name: "${APPLICATION_NAME}"
+                port: "${NCB_SERVICE_PORT}"
+                targetPort: "${NCB_SERVICE_PORT}"
+            selector:
+              deploymentconfig: "${APPLICATION_NAME}"
+            type: "ClusterIP"
+            sessionAffinity: "None"
