@@ -18,6 +18,17 @@ java -jar netcallback.jar private --service-host 10.11.10.11 --service-port 9999
 ```
 
 ### Docker
+In addition to the command line parameters described above, netcallback can be configured using environment variables.
+This allows configuration consistent with what one might expect to deploy in a containerized Docker environment.
+The environment variables are:
+- NCB_SERVER_TYPE
+- NCB_SERVICE_PORT
+- NCB_SERVICE_HOST
+- NCB_TCP_HOST
+- NCB_TCP_PORT
+- NCB_UDP_HOST
+- NCB_UDP_PORT
+- NCB_SSL
 ```
 
 ```
