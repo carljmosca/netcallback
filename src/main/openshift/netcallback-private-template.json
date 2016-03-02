@@ -1,0 +1,134 @@
+{
+  "kind": "List",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "netcallback-private"
+  },
+  "items": [
+    {
+      "kind": "Template",
+      "apiVersion": "v1",
+      "metadata": {
+        "name": "netcallback-private",
+        "annotations": {
+          "description": "Net callback private server",
+          "tags": "instant-app,java"
+        }
+      },
+      "labels": {
+        "application": "netcallback-private",
+        "createdBy": "template-netcallback-private"
+      },
+      "parameters": [
+        {
+          "description": "The name for the application.",
+          "name": "APPLICATION_NAME",
+          "value": "netcallback-private",
+          "displayName": "Application name",
+          "required": true
+        },
+        {
+          "description": "Net callback outside service host",
+          "name": "NCB_SERVICE_HOST",
+          "displayName": "Net callback outside service host",
+          "required": true
+        },
+        {
+          "description": "Net callback outside service port",
+          "name": "NCB_SERVICE_PORT",
+          "displayName": "Net callback outside service port",
+          "required": true
+        },
+        {
+          "description": "Net callback internal redirected TCP host",
+          "name": "NCB_TCP_HOST",
+          "displayName": "Net callback internal redirected TCP host",
+          "required": true
+        },
+        {
+          "description": "Net callback internal redirected TCP port",
+          "name": "NCB_TCP_PORT",
+          "displayName": "Net callback internal redirected TCP port",
+          "required": true
+        }
+      ],
+      "objects": [
+        {
+          "kind": "DeploymentConfig",
+          "apiVersion": "v1",
+          "metadata": {
+            "name": "netcallback-private"
+          },
+          "spec": {
+            "strategy": {
+              "type": "Rolling",
+              "rollingParams": {
+                "updatePeriodSeconds": 1,
+                "intervalSeconds": 1,
+                "timeoutSeconds": 30
+              },
+              "resources": {}
+            },
+            "triggers": [
+              {
+                "type": "ConfigChange"
+              }
+            ],
+            "replicas": 1,
+            "selector": {
+              "deploymentconfig": "netcallback-private"
+            },
+            "template": {
+              "metadata": {
+                "labels": {
+                  "deploymentconfig": "netcallback-private"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "name": "netcallback-private",
+                    "image": "repo.cad.ao.dcn/usc/netcallback:latest",                    
+                    "env": [
+                      {
+                        "name": "NCB_SERVER_TYPE",
+                        "value": "private"
+                      },
+                      {
+                        "name": "NCB_SERVICE_HOST",
+                        "value": "${NCB_SERVICE_HOST}"
+                      },
+                      {
+                        "name": "NCB_SERVICE_PORT",
+                        "value": "${NCB_SERVICE_PORT}"
+                      },
+                      {
+                        "name": "NCB_TCP_HOST",
+                        "value": "${NCB_TCP_HOST}"
+                      },
+                      {
+                        "name": "NCB_TCP_PORT",
+                        "value": "${NCB_TCP_PORT}"
+                      }
+                    ],
+                    "resources": {},
+                    "terminationMessagePath": "/dev/termination-log",
+                    "securityContext": {
+                      "capabilities": {},
+                      "privileged": false
+                    }
+                  }
+                ],
+                "nodeSelector": {
+                    "zone": "east"
+                },
+                "restartPolicy": "Always",
+                "dnsPolicy": "ClusterFirst"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

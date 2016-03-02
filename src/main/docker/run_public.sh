@@ -1,1 +1,1 @@
-docker run -d --name netcallback -e NCB_SERVER_TYPE=public -e NCB_SERVICE_PORT=9999 -e NCB_TCP_PORT=80 netcallback:latest
+docker run -d --name netcallback -e NCB_SERVER_TYPE=public -e NCB_SERVICE_PORT=9999 -e NCB_TCP_PORT=81 -p 9999:9999 -p 81:81 -p 10000:10000 carljmosca/netcallback:latest
