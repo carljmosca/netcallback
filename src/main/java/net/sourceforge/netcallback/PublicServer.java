@@ -19,9 +19,20 @@
 package net.sourceforge.netcallback;
 
 import com.beust.jcommander.JCommander;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import net.sourceforge.netcallback.util.InetAddressUtils;
-import java.net.*;
-import java.io.*;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -110,7 +121,10 @@ public class PublicServer extends Thread {
     /**
      * The socket factory used to create Socket and ServerSocket instances
      */
-    protected CallbackSocketFactory socketFactory;
+    //protected CallbackSocketFactory socketFactory;
+
+    protected int initialAnonymousPort;
+    protected int finalAnonymousPort;
 
     /**
      * Construct a new PublicServer waiting for connection from a PrivateServer
@@ -119,6 +133,9 @@ public class PublicServer extends Thread {
      * @param servicePort - port on which PrivateServer will contact this object
      * @param tcpPort - port to which clients can connect to receive redirection
      * service.
+     * @param udpPort
+     * @param initialAnonymousPort
+     * @param finalAnonymousPort
      * @param socketFactory - used to create Socket and ServerSocket instances
      *
      * @exception IOException - if one of the server sockets could not be
@@ -127,12 +144,17 @@ public class PublicServer extends Thread {
     public PublicServer(final int servicePort,
             final int tcpPort,
             final int udpPort,
-            CallbackSocketFactory socketFactory)
+            final int initialAnonymousPort,
+            final int finalAnonymousPort)
+            //CallbackSocketFactory socketFactory)
             throws IOException {
 
-        this.socketFactory = socketFactory;
+        //this.socketFactory = socketFactory;
 
-        serviceServerSocket = socketFactory.createServerSocket(servicePort);
+        this.initialAnonymousPort = initialAnonymousPort;
+        this.finalAnonymousPort = finalAnonymousPort;
+
+        serviceServerSocket = new ServerSocket(servicePort);//socketFactory.createServerSocket(servicePort);
 
         //
         // TCP server
@@ -161,6 +183,7 @@ public class PublicServer extends Thread {
             udpSocket = new DatagramSocket(udpPort);
 
             udpThread = new Thread() {
+                @Override
                 public void run() {
                     byte[] buffer = new byte[65536];
                     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -414,15 +437,15 @@ public class PublicServer extends Thread {
                 final Socket clientSocket = tcpServerSocket.accept();
                 clientSocket.setSoTimeout(1000);
 
-                if (socketFactory.isSecure()) {
+                //if (socketFactory.isSecure()) {
                     Log.log("Secure redirect request from "
                             + clientSocket.getInetAddress() + ":"
                             + clientSocket.getPort());
-                } else {
+                //} else {
                     Log.log("Cleartext redirect request from "
                             + clientSocket.getInetAddress() + ":"
                             + clientSocket.getPort());
-                }
+                //}
 
                 if (serviceDataOutput == null) {
                     Log.log("Rejecting redirect request because private server has not been started");
@@ -432,31 +455,34 @@ public class PublicServer extends Thread {
 
                 // Find an anonymous port
                 ServerSocket server = null;
-                int anonPort = 10000;
-                while (server == null) {
+                //int anonPort = 10000;
+                int anonymousPort = initialAnonymousPort;
+                while (server == null && anonymousPort <= finalAnonymousPort) {
                     try {
-                        server = socketFactory.createServerSocket(anonPort);
+                        server = new ServerSocket(anonymousPort); // socketFactory.createServerSocket(anonymousPort);
+                        Log.debug("Using anonymous port " + anonymousPort);
                     } catch (IOException e) {
-                        anonPort++;
+                        anonymousPort++;
                     }
                 }
 
                 final ServerSocket finalServer = server;
-                final int finalAnonPort = anonPort;
+                final int finalAnonPort = anonymousPort;
                 final long id = getNextID();
 
                 // Create the thread that will wait for the PrivateServer
                 // callback and then start the copying process.
                 Thread callbackWaitThread = new Thread() {
+                    @Override
                     public void run() {
                         this.setName("CallbackWait[" + finalAnonPort + "]");
                         Socket callbackSocket = null;
                         try {
                             callbackSocket = finalServer.accept();
 
-                            if (socketFactory instanceof DefaultSocketFactory) {
+                            //if (socketFactory instanceof DefaultSocketFactory) {
                                 callbackSocket.setSoTimeout(1000);
-                            }
+                            //}
 
                             final int callbackSocketPort = callbackSocket.getPort();
 
@@ -504,7 +530,7 @@ public class PublicServer extends Thread {
                     // CALLBACK PORT ID
                     synchronized (serviceDataOutput) {
                         serviceDataOutput.writeInt(CallbackProtocol.CALLBACK);
-                        serviceDataOutput.writeInt(anonPort);
+                        serviceDataOutput.writeInt(anonymousPort);
                         serviceDataOutput.writeLong(id);
                         serviceDataOutput.flush();
                     }
@@ -545,7 +571,7 @@ public class PublicServer extends Thread {
 
         String pname = "PublicServer";
 
-        CallbackSocketFactory socketFactory = null;
+        //CallbackSocketFactory socketFactory = null;
 
         if (options.isSsl()) {
             //
@@ -593,15 +619,15 @@ public class PublicServer extends Thread {
                 }
             } // while (password not set)
 
-            socketFactory = new SecureSocketFactory();
+            //socketFactory = new SecureSocketFactory();
         }
 
         //
         // Validate flags
         //
-        if (socketFactory == null) {
-            socketFactory = new DefaultSocketFactory();
-        }
+        //if (socketFactory == null) {
+            //socketFactory = new DefaultSocketFactory();
+        //}
 
         if ((options.getTcpPort() <= 0) && (options.getUdpPort() <= 0)) {
             jCommander.usage();
@@ -613,7 +639,9 @@ public class PublicServer extends Thread {
         try {
             PublicServer daemon = new PublicServer(options.getServicePort(),
                     options.getTcpPort(), options.getUdpPort(),
-                    socketFactory);
+                    options.getInitialAnonymousPort(),
+                    options.getFinalAnonymousPort());
+                    //socketFactory);
             synchronized (daemon) {
                 daemon.wait();
             }

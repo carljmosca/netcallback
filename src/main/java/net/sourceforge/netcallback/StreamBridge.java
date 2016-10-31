@@ -91,6 +91,7 @@ public class StreamBridge extends Thread {
      * Thread copying bytes from the input stream and writing them to the output
      * stream until the end of file.
      */
+    @Override
     public void run() {
 
         try {

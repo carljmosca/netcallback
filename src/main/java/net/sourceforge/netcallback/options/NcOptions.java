@@ -23,6 +23,8 @@ public class NcOptions {
     public final String ENV_SERVICE_HOST = "NCB_SERVICE_HOST";
     public final String ENV_TCP_HOST = "NCB_TCP_HOST";
     public final String ENV_UDP_HOST = "NCB_UDP_HOST";
+    public final String ENV_INITIAL_ANONYMOUS_PORT = "NCB_INITIAL_ANONYMOUS_PORT";
+    public final String ENV_FINAL_ANONYMOUS_PORT = "NCB_FINAL_ANONYMOUS_PORT";
 
     @Parameter(description = "server type (private, public)")
     private List<String> parameters;
@@ -40,12 +42,17 @@ public class NcOptions {
     private String tcpHost;
     @Parameter(names = "--udp-host", required = false, description = "clients use this UDP host to use tunnel")
     private String udpHost;
+    @Parameter(names = "--initial-anonymous-port", required = false, description = "initiail anonymous port")
+    private Integer initialAnonymousPort;
+    @Parameter(names = "--final-anonymous-port", required = false, description = "final anonymous port")
+    private Integer finalAnonymousPort;
 
     public NcOptions() {
         parameters = new ArrayList<>();
         servicePort = 0;
         tcpPort = 0;
         udpPort = 0;
+        initialAnonymousPort = 0;
         loadFromEnvironment();
     }
 
@@ -58,6 +65,8 @@ public class NcOptions {
         serviceHost = loadString(ENV_SERVICE_HOST);
         tcpHost = loadString(ENV_TCP_HOST);
         udpHost = loadString(ENV_UDP_HOST);
+        initialAnonymousPort = loadInteger(ENV_INITIAL_ANONYMOUS_PORT);
+        finalAnonymousPort = loadInteger(ENV_FINAL_ANONYMOUS_PORT);
     }
 
     private String loadString(String name) {
@@ -148,6 +157,22 @@ public class NcOptions {
 
     public void setSsl(boolean ssl) {
         this.ssl = ssl;
+    }
+
+    public Integer getInitialAnonymousPort() {
+        return initialAnonymousPort;
+    }
+
+    public void setInitialAnonymousPort(Integer initialAnonymousPort) {
+        this.initialAnonymousPort = initialAnonymousPort;
+    }
+
+    public Integer getFinalAnonymousPort() {
+        return finalAnonymousPort;
+    }
+
+    public void setFinalAnonymousPort(Integer finalAnonymousPort) {
+        this.finalAnonymousPort = finalAnonymousPort;
     }
 
 }

@@ -102,7 +102,7 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
     /**
      * The socket factory used to create Socket and ServerSocket instances
      */
-    protected CallbackSocketFactory socketFactory;
+    //protected CallbackSocketFactory socketFactory;
 
     /**
      * Maps the UDP datagram source_address:source_port to the local
@@ -141,8 +141,8 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
      */
     public PrivateServer(String publicHost, int publicPort,
             String tcpHost, int privatePort,
-            String udpHost, int udpPort,
-            CallbackSocketFactory socketFactory)
+            String udpHost, int udpPort)
+            //CallbackSocketFactory socketFactory)
             throws IOException {
 
         this.publicHost = publicHost;
@@ -153,14 +153,14 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
             this.udpHost = InetAddress.getByName(udpHost);
         }
         this.udpPort = udpPort;
-        this.socketFactory = socketFactory;
+        //this.socketFactory = socketFactory;
         this.srcDatagramSocketMap = new HashMap();
 
         // Verify private host is resolvable (at least right now)
         InetAddress.getByName(tcpHost);
 
         // Connect to PublicServer
-        socket = socketFactory.createSocket(publicHost, publicPort);
+        socket = new Socket(publicHost, publicPort); //socketFactory.createSocket(publicHost, publicPort);
         istream = new DataInputStream(socket.getInputStream());
         ostream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
@@ -287,6 +287,7 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
      * PublicServer as well as to the private host:port, and then copy traffic
      * between the two.
      */
+    @Override
     public void run() {
         try {
             while (active) {
@@ -347,15 +348,16 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
 
                 } else if (operation == CallbackProtocol.CALLBACK) {
                     int tempPort = istream.readInt();
+                    Log.debug("tempPort " + tempPort);
                     long id = istream.readLong();
 
-                    if (socketFactory.isSecure()) {
+                    //if (socketFactory.isSecure()) {
                         Log.log("Securely bridging " + tcpHost + ":" + privatePort
                                 + " -> " + publicHost + ":" + tempPort);
-                    } else {
+                    //} else {
                         Log.log("Cleartext bridging " + tcpHost + ":" + privatePort
                                 + " -> " + publicHost + ":" + tempPort);
-                    }
+                    //}
 
                     Socket publicSocket = null;
                     Socket privateSocket = null;
@@ -373,10 +375,10 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
                     }
 
                     try {
-                        publicSocket = socketFactory.createSocket(publicHost, tempPort);
-                        if (socketFactory instanceof DefaultSocketFactory) {
+                        publicSocket = new Socket(publicHost, tempPort); //socketFactory.createSocket(publicHost, tempPort);
+                        //if (socketFactory instanceof DefaultSocketFactory) {
                             publicSocket.setSoTimeout(1000);
-                        }
+                        //}
 
                     } catch (Throwable e) {
                         try {
@@ -399,7 +401,7 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
 
                         socketBridge2IdMap.put(socketBridge, new Long(id));
 
-                        outPort2SocketBridgeMap.put(new Integer(publicSocket.getLocalPort()), socketBridge);
+                        outPort2SocketBridgeMap.put(publicSocket.getLocalPort(), socketBridge);
 
                     } catch (IOException e) {
                         Log.log("Error establishing bridge between hosts: "
@@ -468,13 +470,14 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
     /**
      * Command-line startup of PrivateServer
      *
+     * @param jCommander
      * @param options
      */
     public static void main(JCommander jCommander, NcOptions options) {
             
         String pname = "PrivateServer";
 
-        CallbackSocketFactory socketFactory = null;
+        //CallbackSocketFactory socketFactory = null;
 
         if (options.isSsl()) {
             //
@@ -501,15 +504,15 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
                 System.exit(1);
             }
 
-            socketFactory = new SecureSocketFactory();
+            //socketFactory = new SecureSocketFactory();
         }
 
         //
         // Validate flags
         //
-        if (socketFactory == null) {
-            socketFactory = new DefaultSocketFactory();
-        }
+        //if (socketFactory == null) {
+        //    socketFactory = new DefaultSocketFactory();
+        //}
 
         if ((options.getTcpHost() == null) && (options.getUdpHost() == null)) {
             jCommander.usage();
@@ -521,8 +524,8 @@ public class PrivateServer extends Thread implements SocketBridgeListener {
         try {
             PrivateServer daemon = new PrivateServer(options.getServiceHost(),
                     options.getServicePort(), options.getTcpHost(),
-                    options.getTcpPort(), options.getUdpHost(), options.getUdpPort(),
-                    socketFactory);
+                    options.getTcpPort(), options.getUdpHost(), options.getUdpPort());
+                    //socketFactory);
             daemon.join();
         } catch (java.net.ConnectException e) {
             System.err.println(pname + ": Error connecting to " + options.getServiceHost() + ":"

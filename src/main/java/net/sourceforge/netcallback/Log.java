@@ -49,7 +49,7 @@ public final class Log {
      * @param msg
      */
     public static void log(String msg) {
-        //logPrintStream.println(new java.util.Date() + ": " + msg);
+        logPrintStream.println(new java.util.Date() + ": " + msg);
         logPrintStream.println(System.currentTimeMillis() + ": " + msg);
     }
 
@@ -59,6 +59,6 @@ public final class Log {
      * @param msg
      */
     public static void debug(String msg) {
-        //logPrintStream.println(System.currentTimeMillis() + ": " + msg);
+        logPrintStream.println(System.currentTimeMillis() + ": " + msg);
     }
 }
